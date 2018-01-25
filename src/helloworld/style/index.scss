@@ -1,0 +1,8 @@
+.bold {
+    font-weight: bold;
+}
+
+.name {
+    @extend .bold;
+    font-size: 16;
+}
