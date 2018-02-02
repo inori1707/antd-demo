@@ -42,6 +42,8 @@ module.exports = {
   },
   webpackConfig(config) {
     if (isDev) {
+      // 修改开发环境下的bisheng默认webpack配置
+      // 直接替换默认配置，添加必要的bishengloader
       config = webpackMerge(webpackDevConfig, {
         module: {
           rules: [
@@ -59,6 +61,8 @@ module.exports = {
         }
       })
     } else {
+      // 修改生成发布环境下的bisheng默认webpack配置
+      // 使用bishneg默认配置，进行修改
       config = webpackMerge(config, {
         resolve: {
           alias: {
