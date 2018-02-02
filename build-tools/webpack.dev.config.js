@@ -1,22 +1,25 @@
 const webpack = require('webpack')
 const webpackMerge = require('webpack-merge')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const autoprefixer = require('autoprefixer')
+const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const CSSSplitWebpackPlugin = require('css-split-webpack-plugin').default
 const webpackBaseConfig = require('./webpack.base.config')
 const utils = require('./utils')
 
 const pkg = utils.getPackageInfo()
 const entry = [utils.rootPathTo('./index')]
+const baseStyleLoader = utils.getBaseStyleLoader()
 
 const webpackDevConfig = webpackMerge(webpackBaseConfig, {
-  entry: {
-    [`${pkg.name}`]: entry
+  entry: {},
+  output: {
+    publicPath: '/'
   },
   resolve: {
     alias: {
       [pkg.name]: utils.rootPathTo('./index'),
-      site: utils.rootPathTo('./site')
+      site: utils.rootPathTo('./site'),
+      'antd/lib': 'antd/es',
+      'react-router': 'react-router/umd/ReactRouter'
     }
   },
   externals: {
@@ -26,76 +29,41 @@ const webpackDevConfig = webpackMerge(webpackBaseConfig, {
     rules: [
       {
         test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          use: [
-            {
-              loader: 'css-loader',
-              options: {
-                sourceMap: true
-              }
-            },
-            {
-              loader: 'postcss-loader',
-              options: {
-                plugins: [
-                  autoprefixer({
-                    browsers: [
-                      'last 2 versions',
-                      'Firefox ESR',
-                      '> 1%',
-                      'ie >= 9',
-                      'iOS >= 8',
-                      'Android >= 4'
-                    ]
-                  })
-                ],
-                sourceMap: true
-              }
-            }
-          ]
-        })
+        use: ['style-loader'].concat(baseStyleLoader)
       },
       {
         test: /\.less$/,
-        use: ExtractTextPlugin.extract({
-          use: [
-            {
-              loader: 'css-loader',
-              options: {
-                sourceMap: true
-              }
-            },
-            {
-              loader: 'postcss-loader',
-              options: {
-                plugins: [
-                  autoprefixer({
-                    browsers: [
-                      'last 2 versions',
-                      'Firefox ESR',
-                      '> 1%',
-                      'ie >= 9',
-                      'iOS >= 8',
-                      'Android >= 4'
-                    ]
-                  })
-                ],
-                sourceMap: true
-              }
-            },
-            {
-              loader: 'less-loader',
-              options: {
-                sourceMap: true
-              }
+        use: ['style-loader'].concat(baseStyleLoader, [
+          {
+            loader: 'less-loader',
+            options: {
+              sourceMap: true
             }
-          ]
-        })
+          }
+        ])
+      },
+      {
+        test: /\.scss$/,
+        use: ['style-loader'].concat(baseStyleLoader, [
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: true
+            }
+          }
+        ])
       }
     ]
   },
-  devtool: 'source-map',
-  plugins: [new CSSSplitWebpackPlugin({ size: 4000 })]
+  devtool: 'cheap-module-source-map',
+  devServer: {
+    quiet: true,
+    overlay: { warnings: false, errors: true }
+  },
+  plugins: [
+    new FriendlyErrorsPlugin(),
+    new CSSSplitWebpackPlugin({ size: 4000 })
+  ]
 })
 
 module.exports = webpackDevConfig

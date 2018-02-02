@@ -101,12 +101,12 @@ const generateFileContent = function(name) {
     basicDemo: `---
                 order: 0
                 title:
-                  zh-CN: 基础使用
-                  en-US: 
+                \tzh-CN: 基础使用
+                \ten-US: 
                 ---
 
                 ## zh-CN
-                <!--- DEMO介绍 --->
+                DEMO介绍
 
                 \`\`\`\`jsx
                 import { ${componentClassName} } from '${pkg.name}';

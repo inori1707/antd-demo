@@ -1,64 +1,61 @@
-require('core-js/es6/string');
-const path = require('path');
+require('core-js/es6/string')
+const path = require('path')
 
-const contentTmpl = './template/Content/index';
-const redirectTmpl = './template/Redirect';
-
-function pickerGenerator(module) {
-  const tester = new RegExp(`^docs/${module}`);
-  return (markdownData) => {
-    const { filename } = markdownData.meta;
-    if (tester.test(filename) &&
-        !/\/demo$/.test(path.dirname(filename))) {
-      return {
-        meta: markdownData.meta,
-      };
-    }
-  };
-}
+const contentTmpl = './template/Content/index'
+const redirectTmpl = './template/Redirect'
 
 module.exports = {
   lazyLoad(nodePath, nodeValue) {
     if (typeof nodeValue === 'string') {
-      return true;
+      return true
     }
-    return nodePath.endsWith('/demo');
+    return nodePath.endsWith('/demo')
   },
   pick: {
+    introduce(markdownData) {
+      if (/^\.\/readme\.md/.test(markdownData.meta.filename))
+        return {
+          meta: markdownData.meta
+        }
+    },
     components(markdownData) {
-      const { filename } = markdownData.meta;
-      if (!/^components/.test(filename) ||
-          /[/\\]demo$/.test(path.dirname(filename))) return;
+      const { filename } = markdownData.meta
+      if (!/^src/.test(filename) || /[/\\]demo$/.test(path.dirname(filename)))
+        return
 
       return {
-        meta: markdownData.meta,
-      };
+        meta: markdownData.meta
+      }
     },
     changelog(markdownData) {
       if (/CHANGELOG/.test(markdownData.meta.filename)) {
         return {
-          meta: markdownData.meta,
-        };
+          meta: markdownData.meta
+        }
       }
-    },
-    'docs/pattern': pickerGenerator('pattern'),
-    'docs/react': pickerGenerator('react'),
-    'docs/resource': pickerGenerator('resource'),
-    'docs/spec': pickerGenerator('spec'),
+    }
   },
   plugins: [
     'bisheng-plugin-description',
     'bisheng-plugin-toc?maxDepth=2&keepElem',
     'bisheng-plugin-antd',
-    'bisheng-plugin-react?lang=__react',
+    'bisheng-plugin-react?lang=__react'
   ],
   routes: {
     path: '/',
     component: './template/Layout/index',
-    indexRoute: { component: contentTmpl },
-    childRoutes: [{
-      path: 'components/:children/',
-      component: contentTmpl,
-    }],
-  },
-};
+    indexRoute: {
+      component: redirectTmpl
+    },
+    childRoutes: [
+      {
+        path: 'introduce/',
+        component: contentTmpl
+      },
+      {
+        path: 'components/:children/',
+        component: contentTmpl
+      }
+    ]
+  }
+}

@@ -6,7 +6,6 @@ import { getChildren } from 'jsonml.js/lib/utils';
 import { Timeline, Alert, Affix } from 'antd';
 import delegate from 'delegate';
 import EditButton from './EditButton';
-import { ping } from '../utils';
 
 export default class Article extends React.Component {
   static contextTypes = {
@@ -26,16 +25,8 @@ export default class Article extends React.Component {
     if (links.length === 0) {
       return;
     }
-    this.pingTimer = ping((status) => {
-      if (status !== 'timeout' && status !== 'error') {
-        links.forEach(link => (link.style.display = 'block'));
-      } else {
-        links.forEach(link => link.parentNode.removeChild(link));
-      }
-    });
   }
   componentWillUnmount() {
-    clearTimeout(this.pingTimer);
     if (this.delegation) {
       this.delegation.destroy();
     }
@@ -92,7 +83,6 @@ export default class Article extends React.Component {
               !subtitle || locale === 'en-US' ? null :
               <span className="subtitle">{subtitle}</span>
             }
-            <EditButton title={<FormattedMessage id="app.content.edit-page" />} filename={filename} />
           </h1>
           {
             !description ? null :
@@ -103,11 +93,23 @@ export default class Article extends React.Component {
           {
             (!content.toc || content.toc.length <= 1 || meta.toc === false) ? null :
             <Affix className="toc-affix" offsetTop={16}>
-              {
+              <ul className="toc">
+              {/* {
                 props.utils.toReactComponent(
                   ['ul', { className: 'toc' }].concat(getChildren(content.toc))
                 )
+              } */
+                getChildren(content.toc).map(content=> {
+                  return (
+                    <li key={content[1][2]} title={content[1][2]}>
+                      <a href={`#${content[1][2]}`}>
+                      {content[1][2]}
+                      </a>
+                    </li>
+                  );
+                })
               }
+            </ul>
             </Affix>
           }
           {

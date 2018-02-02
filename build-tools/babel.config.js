@@ -18,6 +18,8 @@ module.exports = {
     ]
   ],
   plugins: [
+    ["import", { "libraryName": "antd", "libraryDirectory": "es", "style": "css" }],
+    require.resolve('babel-plugin-add-module-exports'),
     require.resolve('babel-plugin-transform-es3-member-expression-literals'),
     require.resolve('babel-plugin-transform-es3-property-literals'),
     require.resolve('babel-plugin-transform-object-assign'),

@@ -1,69 +1,91 @@
-const utils = require('../build-tools/utils')
+const webpackMerge = require('webpack-merge')
+const CSSSplitWebpackPlugin = require('css-split-webpack-plugin').default
 
-const isDev = process.env.NODE_ENV === 'development';
+const utils = require('../build-tools/utils')
+const webpackDevConfig = require(utils.rootPathTo(
+  './build-tools/webpack.dev.config'
+))
+const pkg = utils.getPackageInfo()
+const isDev = process.env.NODE_ENV === 'development'
 
 module.exports = {
   port: 8081,
   source: {
+    introduce: './readme.md',
     components: './src'
   },
+  output: isDev ? './_site' : './site_dist',
   theme: './site/theme',
   htmlTemplate: './site/theme/static/template.html',
   themeConfig: {
     categoryOrder: {
-      'Ant Design': 0,
-      原则: 1,
-      Principles: 1,
-      视觉: 2,
-      Visual: 2,
-      模式: 3,
-      Patterns: 3,
-      其他: 6,
-      Other: 6,
-      Components: 100,
+      Introduction: 0,
+      Components: 1
     },
-    typeOrder: {
-      General: 0,
-      Layout: 1,
-      Navigation: 2,
-      'Data Entry': 3,
-      'Data Display': 4,
-      Feedback: 5,
-      Localization: 6,
-      Other: 7,
-    },
-    docVersions: {
-      '0.9.x': 'http://09x.ant.design',
-      '0.10.x': 'http://010x.ant.design',
-      '0.11.x': 'http://011x.ant.design',
-      '0.12.x': 'http://012x.ant.design',
-      '1.x': 'http://1x.ant.design',
-      '2.x': 'http://2x.ant.design',
-    },
+    typeOrder: {}
   },
   filePathMapper(filePath) {
     if (filePath === '/index.html') {
-      return ['/index.html', '/index-cn.html'];
+      return ['/index.html', '/index-cn.html']
     }
     if (filePath.endsWith('/index.html')) {
-      return [filePath, filePath.replace(/\/index\.html$/, '-cn/index.html')];
+      return [filePath, filePath.replace(/\/index\.html$/, '-cn/index.html')]
     }
     if (filePath !== '/404.html' && filePath !== '/index-cn.html') {
-      return [filePath, filePath.replace(/\.html$/, '-cn.html')];
+      return [filePath, filePath.replace(/\.html$/, '-cn.html')]
     }
-    return filePath;
+    return filePath
   },
   doraConfig: {
     verbose: true,
-    plugins: ['dora-plugin-upload'],
+    plugins: ['dora-plugin-upload']
   },
   webpackConfig(config) {
-    config = require(utils.rootPathTo('./build-tools/webpack.dev.config'))
+    if (isDev) {
+      config = webpackMerge(webpackDevConfig, {
+        module: {
+          rules: [
+            {
+              test: function test(filename) {
+                return (
+                  filename === require.resolve('bisheng/lib/utils/data') ||
+                  filename === require.resolve('bisheng/lib/utils/ssr-data')
+                )
+              },
 
-    return config;
+              loader: require.resolve('bisheng/lib/loaders/bisheng-data-loader')
+            }
+          ]
+        }
+      })
+    } else {
+      config = webpackMerge(config, {
+        resolve: {
+          alias: {
+            [pkg.name]: utils.rootPathTo('./index'),
+            site: utils.rootPathTo('./site'),
+            'antd/lib': 'antd/es',
+            'react-router': 'react-router/umd/ReactRouter'
+          }
+        },
+        externals: {
+          'react-router-dom': 'ReactRouterDOM'
+        }
+        // plugins: [new CSSSplitWebpackPlugin({ size: 4000 })]
+      })
+      config.module.rules.forEach(rule => {
+        if (rule.loader === 'babel-loader') {
+          rule.options.plugins.unshift([
+            'import',
+            { libraryName: 'antd', libraryDirectory: 'es', style: 'css' }
+          ])
+        }
+      })
+    }
+    return config
   },
 
   htmlTemplateExtraData: {
     isDev
-  },
-};
+  }
+}

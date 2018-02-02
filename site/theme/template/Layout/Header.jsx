@@ -9,32 +9,6 @@ import { version as antdVersion } from '../../../../package.json';
 
 const { Option } = Select;
 
-let docsearch;
-if (typeof window !== 'undefined') {
-  docsearch = require('docsearch.js'); // eslint-disable-line
-}
-
-function initDocSearch(locale) {
-  if (!docsearch) {
-    return;
-  }
-  const lang = locale === 'zh-CN' ? 'cn' : 'en';
-  docsearch({
-    apiKey: '60ac2c1a7d26ab713757e4a081e133d0',
-    indexName: 'ant_design',
-    inputSelector: '#search-box input',
-    algoliaOptions: { facetFilters: [`tags:${lang}`] },
-    transformData(hits) {
-      hits.forEach((hit) => {
-        hit.url = hit.url.replace('ant.design', location.host);
-        hit.url = hit.url.replace('https:', location.protocol);
-      });
-      return hits;
-    },
-    debug: false, // Set debug to true if you want to inspect the dropdown
-  });
-}
-
 export default class Header extends React.Component {
   static contextTypes = {
     router: PropTypes.object.isRequired,
@@ -49,15 +23,6 @@ export default class Header extends React.Component {
   componentDidMount() {
     const { intl, router } = this.context;
     router.listen(this.handleHideMenu);
-    const { searchInput } = this;
-    /* eslint-disable global-require */
-    document.addEventListener('keyup', (event) => {
-      if (event.keyCode === 83 && event.target === document.body) {
-        searchInput.focus();
-      }
-    });
-    initDocSearch(intl.locale);
-    /* eslint-enable global-require */
   }
 
   handleShowMenu = () => {
@@ -138,38 +103,14 @@ export default class Header extends React.Component {
         {versionOptions}
       </Select>,
       <Menu className="menu-site" mode={menuMode} selectedKeys={[activeMenuItem]} id="nav" key="nav">
-        <Menu.Item key="home">
-          <Link to={utils.getLocalizedPathname('/', isZhCN)}>
-            <FormattedMessage id="app.header.menu.home" />
-          </Link>
-        </Menu.Item>
-        <Menu.Item key="docs/spec">
-          <Link to={utils.getLocalizedPathname('/docs/spec/introduce', isZhCN)}>
-            <FormattedMessage id="app.header.menu.spec" />
-          </Link>
-        </Menu.Item>
-        <Menu.Item key="docs/react">
-          <Link to={utils.getLocalizedPathname('/docs/react/introduce', isZhCN)}>
+        <Menu.Item key="components">
+          <Link to={utils.getLocalizedPathname('/introduce', isZhCN)}>
             <FormattedMessage id="app.header.menu.components" />
           </Link>
-        </Menu.Item>
-        <Menu.Item key="pro">
-          <a
-            href="http://pro.ant.design"
-            className="header-link"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FormattedMessage id="app.header.menu.pro" />
-            <span style={{ display: 'inline-block', position: 'relative', top: -2, width: 6, marginLeft: 4 }}>
-              <Badge dot />
-            </span>
-          </a>
         </Menu.Item>
       </Menu>,
     ];
 
-    const searchPlaceholder = locale === 'zh-CN' ? '在 ant.design 中搜索' : 'Search in ant.design';
     return (
       <header id="header" className={headerClassName}>
         {isMobile && (
@@ -197,10 +138,6 @@ export default class Header extends React.Component {
             </Link>
           </Col>
           <Col xxl={20} xl={19} lg={19} md={18} sm={0} xs={0}>
-            <div id="search-box">
-              <Icon type="search" />
-              <Input ref={ref => this.searchInput = ref} placeholder={searchPlaceholder} />
-            </div>
             {!isMobile && menu}
           </Col>
         </Row>

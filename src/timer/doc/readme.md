@@ -1,7 +1,7 @@
 ---
 category: Components
 title: Timer
-subtitle: 中文名称
+subtitle: 计时器
 cols: 1
 ---
 
